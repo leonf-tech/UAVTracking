@@ -37,7 +37,7 @@ class CSK(BaseCF):
         self._init_response_center=np.unravel_index(np.argmax(self.y,axis=None),self.y.shape)
         self.alphaf=self._training(self.x,self.y)
 
-    def update(self,current_frame,vis=False):
+    def update(self,current_frame,idx,vis=False):
         if len(current_frame.shape)==3:
             assert current_frame.shape[2]==3
             current_frame=cv2.cvtColor(current_frame,cv2.COLOR_BGR2GRAY)

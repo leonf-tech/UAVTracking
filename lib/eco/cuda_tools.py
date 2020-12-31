@@ -118,10 +118,10 @@ def convolve2d(in1, in2, mode='full'):
 
     if mode == 'full':
         ph, pw = kh-1, kw-1
-        out_h, out_w = h-kh+1+ph*2, w-kw+1+pw*2# TODO
+        out_h, out_w = h-kh+1+ph*2, w-kw+1+pw*2#
     elif mode == 'valid':
         ph, pw = 0, 0
-        out_h, out_w = h-kh+1, w-kw+1 # TODO
+        out_h, out_w = h-kh+1, w-kw+1 #
     else:
         raise NotImplementedError
 

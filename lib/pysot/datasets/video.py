@@ -9,13 +9,32 @@ from glob import glob
 class Video(object):
     def __init__(self, name, root, video_dir, init_rect, img_names,
             gt_rect, attr, load_img=False):
+        '''
+
+        :param name: the name of the video sequence
+        :param root: <- dataste_root ../dataset/UAV123
+        :param video_dir: <-video_dir, car16,person22
+        :param init_rect:
+        :param img_names:
+        :param gt_rect:
+        :param attr:
+        :param load_img:
+        '''
         self.name = name
         self.video_dir = video_dir
         self.init_rect = init_rect
         self.gt_traj = gt_rect
         self.attr = attr
         self.pred_trajs = {}
-        self.img_names = [os.path.join(root, x) for x in img_names]
+        self.img_names = []
+        # print("print(img_names)")
+        # print(img_names)
+        # print(root) # ../dataset/UAV123
+        # TODO
+        for x in img_names:
+
+            self.img_names.append(os.path.join(root,x.split("/")[0],'img',x.split("/")[1]))
+        # self.img_names = [os.path.join(root,x) for x in img_names]
 
 
         self.imgs = None
@@ -23,7 +42,7 @@ class Video(object):
         if load_img:
             self.imgs = [cv2.imread(img_name)
                             for img_name in self.img_names]
-            self.width = self.imgs[0].shape[1]
+            self.width = self.imgs[0].shape2[1]
             self.height = self.imgs[0].shape[0]
         else:
             img = cv2.imread(self.img_names[0])
@@ -34,28 +53,38 @@ class Video(object):
     def load_tracker(self, path, tracker_names=None, store=True):
         """
         Args:
-            path(str): path to result
-            tracker_name(list): name of tracker
+            path(str): path to result <- self.dataset.tracker_path ../cftracker
+            tracker_name(list): name of trackers
+        load tracker tracking result from traking file
         """
-        if not tracker_names:
-            tracker_names = [x.split('/')[-1] for x in glob(path)
-                    if os.path.isdir(x)]
-        if isinstance(tracker_names, str):
-            tracker_names = [tracker_names]
-        for name in tracker_names:
-            traj_file = os.path.join(path, name, self.name+'.txt')
-            if os.path.exists(traj_file):
-                with open(traj_file, 'r') as f :
-                    pred_traj = [list(map(float, x.strip().split(',')))
-                            for x in f.readlines()]
-                if len(pred_traj) != len(self.gt_traj):
-                    print(name, len(pred_traj), len(self.gt_traj), self.name)
-                if store:
-                    self.pred_trajs[name] = pred_traj
-                else:
-                    return pred_traj
+        # print(tracker_names)
+        name  = tracker_names
+        # trackers = ['KCF', 'DCF', 'DAT', 'SAMF', 'MOSSE', 'CSK', 'CN', 'BACF', 'CSRDCF', 'LDES', 'MKCFup', 'Staple']# TODO
+        # tracker_names = ['KCF', 'DCF', 'DAT', 'SAMF', 'MOSSE', 'CSK', 'CN', 'BACF', 'CSRDCF', 'LDES', 'MKCFup', 'Staple']
+            #!
+            #../cftracker/MKCFup/bike2.txt
+            # traj_file the tracker prediction result file
+        traj_file = os.path.join("./UAV123", name,"baseline",self.name,self.name+'_001.txt') #TODO
+        if os.path.exists(traj_file):
+            with open(traj_file, 'r') as f :
+                pred_traj = [list(map(float, x.strip().split(','))) for x in f.readlines()]
+
+            if len(pred_traj) != len(self.gt_traj):
+                print(name, len(pred_traj), len(self.gt_traj), self.name)
+                raise Exception(self.name,"prediction != gt")
+
+            # print("pred_traj")
+            # print(pred_traj)
+            if store:
+                self.pred_trajs[name] = pred_traj
             else:
-                print(traj_file)
+                return pred_traj
+        else:
+            print("print(traj_file)")
+            print(traj_file)
+            raise Exception("track result file tracke_traj is none")
+
+
         self.tracker_names = list(self.pred_trajs.keys())
 
     def load_img(self):

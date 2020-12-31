@@ -76,6 +76,10 @@ class STRCF(BaseCF):
 
 
     def init(self,first_frame,bbox):
+        # print("first_frame")
+        # print(first_frame)
+        # print("bbox")
+        # print(bbox)
 
         bbox = np.array(bbox).astype(np.int64)
         x0, y0, w, h = tuple(bbox)
@@ -164,7 +168,14 @@ class STRCF(BaseCF):
         self.f_pre_f_hc=self.ADMM(xlf_hc,f_pre_f_hc,mu_hc)
 
 
-    def update(self,current_frame,vis=False):
+    def update(self,current_frame,idx,vis=False):
+        '''
+
+        :param current_frame:
+        :param idx:
+        :param vis:
+        :return:
+        '''
         assert len(current_frame.shape) == 3 and current_frame.shape[2] == 3
         old_pos=(np.inf,np.inf)
         iter=1

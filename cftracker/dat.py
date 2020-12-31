@@ -55,7 +55,14 @@ class DAT(BaseCF):
         self.target_pos_history.append((self._center[0]/self._scale_factor,self._center[1]/self._scale_factor))
         self.target_sz_history.append((self._target_sz[0]/self._scale_factor,self._target_sz[1]/self._scale_factor))
 
-    def update(self,current_frame,vis=False):
+    def update(self,current_frame,idx,vis=False):
+        '''
+
+        :param current_frame:
+        :param idx:
+        :param vis:
+        :return:
+        '''
         img_preprocessed=cv2.resize(current_frame,None,fx=self._scale_factor,fy=self._scale_factor)
         if self.config.color_space=='lab':
             img=cv2.cvtColor(img_preprocessed,cv2.COLOR_BGR2Lab)

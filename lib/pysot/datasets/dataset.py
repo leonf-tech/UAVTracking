@@ -2,6 +2,11 @@ from tqdm import tqdm
 
 class Dataset(object):
     def __init__(self, name, dataset_root):
+        '''
+
+        :param name:
+        :param dataset_root: dataset_root:  pyCFTrackers/dataset/UAV123
+        '''
         self.name = name
         self.dataset_root = dataset_root
         self.videos = None
@@ -23,8 +28,9 @@ class Dataset(object):
     def set_tracker(self, path, tracker_names):
         """
         Args:
-            path: path to tracker results,
-            tracker_names: list of tracker name
+            path: path to tracker results, ../cftrackers
+            tracker_names: list of tracker name <- tracker name
+            caller: eval_UAV123
         """
         self.tracker_path = path
         self.tracker_names = tracker_names

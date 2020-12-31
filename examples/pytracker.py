@@ -18,23 +18,24 @@ from cftracker.strcf import STRCF
 from cftracker.mccth_staple import MCCTHStaple
 from lib.eco.config import otb_deep_config,otb_hc_config
 from cftracker.config import staple_config,ldes_config,dsst_config,csrdcf_config,mkcf_up_config,mccth_staple_config
+from cftracker.ReIDkcf import ReIDKCF
 class PyTracker:
-    def __init__(self,img_dir,tracker_type,dataset_config):
+    def __init__(self,img_dir,tracker_type,dataset_config=False):
         self.img_dir=img_dir
         self.tracker_type=tracker_type
         self.frame_list = get_img_list(img_dir)
         self.frame_list.sort()
+        #bike2
         dataname=img_dir.split('/')[-2]
         self.gts=get_ground_truthes(img_dir[:-4])
-        if dataname in dataset_config.frames.keys():
-            start_frame,end_frame=dataset_config.frames[dataname][0:2]
-            if dataname!='David':
-                self.init_gt=self.gts[start_frame-1]
-            else:
-                self.init_gt=self.gts[0]
-            self.frame_list=self.frame_list[start_frame-1:end_frame]
-        else:
-            self.init_gt=self.gts[0]
+
+        # if dataname in dataset_config.frames.keys():
+        #     start_frame,end_frame=dataset_config.frames[dataname][0:2]
+        #     self.init_gt=self.gts[0]
+        #     self.frame_list=self.frame_list[start_frame-1:end_frame]
+        # else:
+        self.init_gt=self.gts[0]
+
         if self.tracker_type == 'MOSSE':
             self.tracker=MOSSE()
         elif self.tracker_type=='CSK':
@@ -85,10 +86,19 @@ class PyTracker:
             self.tracker=MCCTHStaple(config=mccth_staple_config.MCCTHOTBConfig())
         elif self.tracker_type=='MCCTH':
             self.tracker=MCCTH(config=mccth_config.MCCTHConfig())
+        elif self.tracker_type == "ReIDKCF":
+            self.tracker = ReIDKCF(features='hog',kernel='gaussian')
         else:
             raise NotImplementedError
 
     def tracking(self,verbose=True,video_path=None):
+        '''
+
+        :param verbose:
+        :param video_path: ../results/CF/{data_name}_vis.avi
+        :return:
+        '''
+        #[[<x>,<y>,<width>,<height> of the bounding box],[],..]
         poses = []
         init_frame = cv2.imread(self.frame_list[0])
         #print(init_frame.shape)
@@ -98,17 +108,21 @@ class PyTracker:
         self.tracker.init(init_frame,init_gt)
         writer=None
         if verbose is True and video_path is not None:
-            writer = cv2.VideoWriter(video_path, cv2.VideoWriter_fourcc('M', 'J', 'P', 'G'), 30, (init_frame.shape[1], init_frame.shape[0]))
+            writer = cv2.VideoWriter(video_path, cv2.VideoWriter_fourcc('M', 'J', 'P', 'G'), 2, (init_frame.shape[1], init_frame.shape[0]))
 
         for idx in range(len(self.frame_list)):
             if idx != 0:
                 current_frame=cv2.imread(self.frame_list[idx])
+                #height,width of current frame
                 height,width=current_frame.shape[:2]
-                bbox=self.tracker.update(current_frame,vis=verbose)
+
+                #TODO: ReIDKCF 修改了update传参
+                bbox=self.tracker.update(current_frame,idx,self.frame_list[idx],vis=verbose,)
                 x1,y1,w,h=bbox
                 if verbose is True:
                     if len(current_frame.shape)==2:
                         current_frame=cv2.cvtColor(current_frame,cv2.COLOR_GRAY2BGR)
+                    #centered response map
                     score = self.tracker.score
                     apce = APCE(score)
                     psr = PSR(score)
@@ -121,6 +135,7 @@ class PyTracker:
                     # score = 255 - score
                     score = cv2.applyColorMap(score, cv2.COLORMAP_JET)
                     center = (int(x1+w/2),int(y1+h/2))
+                    #print("center",center)
                     x0,y0=center
                     x0=np.clip(x0,0,width-1)
                     y0=np.clip(y0,0,height-1)
@@ -129,8 +144,10 @@ class PyTracker:
                     xmax = int(center[0]) + size[0] // 2 + size[0] % 2
                     ymin = int(center[1]) - size[1] // 2
                     ymax = int(center[1]) + size[1] // 2 + size[1] % 2
+
                     left = abs(xmin) if xmin < 0 else 0
                     xmin = 0 if xmin < 0 else xmin
+
                     right = width - xmax
                     xmax = width if right < 0 else xmax
                     right = size[0] + right if right < 0 else size[0]
@@ -139,11 +156,16 @@ class PyTracker:
                     down = height - ymax
                     ymax = height if down < 0 else ymax
                     down = size[1] + down if down < 0 else size[1]
+
                     score = score[top:down, left:right]
+
                     crop_img = current_frame[ymin:ymax, xmin:xmax]
+
                     score_map = cv2.addWeighted(crop_img, 0.6, score, 0.4, 0)
                     current_frame[ymin:ymax, xmin:xmax] = score_map
                     show_frame=cv2.rectangle(current_frame, (int(x1), int(y1)), (int(x1 + w), int(y1 + h)), (255, 0, 0),1)
+                    cv2.putText(show_frame, 'frame number:' + str(idx), (0, 250), cv2.FONT_HERSHEY_COMPLEX, 2,
+                                (0, 0, 255), 5)
                     """
                     cv2.putText(show_frame, 'APCE:' + str(apce)[:5], (0, 250), cv2.FONT_HERSHEY_COMPLEX, 2,
                                 (0, 0, 255), 5)
@@ -153,7 +175,7 @@ class PyTracker:
                                 (255, 0, 0), 5)
                     """
 
-                    cv2.imshow('demo', show_frame)
+                    #cv2.imshow('demo', show_frame)
                     if writer is not None:
                         writer.write(show_frame)
                     cv2.waitKey(1)

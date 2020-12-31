@@ -64,7 +64,7 @@ class SAMF(BaseCF):
         self.model_alphaf=self.yf/(kf+self.lambda_)
         self.model_xf=xf
 
-    def update(self,current_frame,vis=False):
+    def update(self,current_frame,idx,vis=False):
         if self.resize:
             current_frame=cv2.resize(current_frame,dsize=None,fx=0.5,fy=0.5).astype(np.uint8)
         response=None

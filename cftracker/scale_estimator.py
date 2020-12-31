@@ -176,9 +176,16 @@ class LPScaleEstimator:
         self.mag = self.cos_window_scale.shape[0] / np.log(np.sqrt((self.cos_window_scale.shape[0] ** 2 +
                                                                     self.cos_window_scale.shape[1] ** 2) / 4))
 
+        # print("scale_estimator.py line 179 im.shape")
+        # print(im.shape)
+
+        # print("(int(np.floor(current_scale_factor * self.scale_sz[0])),int(np.floor(current_scale_factor * self.scale_sz[1]))), pos")
+        # print((int(np.floor(current_scale_factor * self.scale_sz[0])),int(np.floor(current_scale_factor * self.scale_sz[1]))), pos)
         # scale lp
         patchL = cv2.getRectSubPix(im, (int(np.floor(current_scale_factor * self.scale_sz[0])),
                                                  int(np.floor(current_scale_factor * self.scale_sz[1]))), pos)
+        # print("patchL.shape")
+        # print(patchL.shape)
         patchL = cv2.resize(patchL, self.scale_sz_window)
         patchLp = cv2.logPolar(patchL.astype(np.float32), ((patchL.shape[1] - 1) / 2, (patchL.shape[0] - 1) / 2),
                                self.mag, flags=cv2.INTER_LINEAR + cv2.WARP_FILL_OUTLIERS)

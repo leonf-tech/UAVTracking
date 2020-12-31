@@ -49,7 +49,7 @@ class CN(BaseCF):
         self.alphaf_den=kf*(kf+self.lambda_)
 
 
-    def update(self,current_frame,vis=False):
+    def update(self,current_frame,idx,vis=False):
         z=self.get_sub_window(current_frame,self._center,self.crop_size)
         z=self._window[:,:,None]*z
         kf=fft2(self._dgk(self.x,z))

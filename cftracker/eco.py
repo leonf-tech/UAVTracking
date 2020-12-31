@@ -11,6 +11,7 @@ import cv2
 class ECO(BaseCF):
     def __init__(self,config):
         super(ECO).__init__()
+
         self.config=config
 
     def init(self,first_frame,bbox):
@@ -23,7 +24,14 @@ class ECO(BaseCF):
         self.tracker.init(first_frame,bbox)
 
 
-    def update(self,current_frame,vis=False):
+    def update(self,current_frame,idx,vis=False):
+        '''
+
+        :param current_frame:
+        :param idx:
+        :param vis:
+        :return:
+        '''
         if self.tracker._is_color is True:
             current_frame=cv2.cvtColor(current_frame,cv2.COLOR_BGR2RGB)
         else:

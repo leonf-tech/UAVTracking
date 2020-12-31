@@ -4,12 +4,22 @@ import cv2
 import matplotlib.pyplot as plt
 
 def APCE(response_map):
+    '''
+
+    :param response_map: #centered response map
+    :return:
+    '''
     Fmax=np.max(response_map)
     Fmin=np.min(response_map)
     apce=(Fmax-Fmin)**2/(np.mean((response_map-Fmin)**2))
     return apce
 
 def PSR(response):
+    '''
+
+    :param response: centered response map
+    :return:
+    '''
     response_map=response.copy()
     max_loc=np.unravel_index(np.argmax(response_map, axis=None),response_map.shape)
     y,x=max_loc
@@ -30,6 +40,10 @@ def to_color_map(score,sz):
     return score
 
 def calAUC(value_list):
+    '''
+    calculate area under curve
+    
+    '''
     length=len(value_list)
     delta=1./(length-1)
     area=0.
@@ -48,6 +62,7 @@ def cos_window(sz):
     """
 
     cos_window = np.hanning(int(sz[1]))[:, np.newaxis].dot(np.hanning(int(sz[0]))[np.newaxis, :])
+    #print(cos_window)
     return cos_window
 
 
@@ -59,6 +74,12 @@ def get_img_list(img_dir):
     return frame_list
 
 def get_ground_truthes(img_path):
+    '''
+
+    :param img_path:
+    :return: gts [ [一行split出的四个数值], [], ...]
+    '''
+    #../dataset/test/bike2/groundtruth_rect.txt
     gt_path = os.path.join(img_path, 'groundtruth_rect.txt')
     gts=[]
     with open(gt_path, 'r') as f:
@@ -92,6 +113,10 @@ def get_init_gt(img_path):
     return tuple(gt_pos_int)
 
 def gaussian2d_labels(sz,sigma):
+    '''
+    get the 2d label using Guassian distribution, peak is at the center 
+    
+    '''
     w,h=sz
     xs, ys = np.meshgrid(np.arange(w), np.arange(h))
     center_x, center_y = w / 2, h / 2
@@ -99,13 +124,17 @@ def gaussian2d_labels(sz,sigma):
     labels = np.exp(-0.5*dist)
     return labels
 
-"""
-max val at the top left loc
-"""
+
 def gaussian2d_rolled_labels(sz,sigma):
+    '''
+    2d label max val at the top left loc
+    
+    '''
     w,h=sz
     xs, ys = np.meshgrid(np.arange(w)-w//2, np.arange(h)-h//2)
     dist = (xs**2+ys**2) / (sigma**2)
+    # print("dist")
+    # print(dist)
     labels = np.exp(-0.5*dist)
     labels = np.roll(labels, -int(np.floor(sz[0] / 2)), axis=1)
     labels=np.roll(labels,-int(np.floor(sz[1]/2)),axis=0)
@@ -113,23 +142,49 @@ def gaussian2d_rolled_labels(sz,sigma):
 
 
 def plot_precision(gts,preds,save_path):
+    '''
+
+    draw the precision plot 
+    
+    
+    :param gts:
+    :param preds:
+    :param save_path: '../results/CF/{data_name}_precision.jpg'
+    :return:
+    '''
     # x,y,w,h
     threshes,precisions=get_thresh_precision_pair(gts,preds)
     idx20 = [i for i, x in enumerate(threshes) if x == 20][0]
-    plt.plot(threshes,precisions,label=str(precisions[idx20])[:5])
+    print(idx20)
+    #print(len(threshes)) 101
+    #print(len(precisions)) 101
+    #plt.plot(threshes,precisions,label=str(precisions[idx20])[:5])
+    plt.plot(threshes, precisions)
+    plt.plot(threshes, precisions)
     plt.title('Precision Plots')
-    plt.legend()
+    #plt.legend()
+    plt.xlabel("threshold")
+    plt.ylabel("precision")
+    print(save_path)
     plt.savefig(save_path)
-    plt.show()
+    return threshes,precisions
+    #plt.show()
 
 def get_thresh_precision_pair(gts,preds):
+    '''
+    return threshold [] ; precision [] 
+    
+    '''
     length=min(len(gts),len(preds))
     gts=gts[:length,:]
     preds=preds[:length,:]
+    
     gt_centers_x = (gts[:, 0]+gts[:,2]/2)
     gt_centers_y = (gts[:, 1]+gts[:,3]/2)
+    
     preds_centers_x = (preds[:, 0]+preds[:,2]/2)
     preds_centers_y = (preds[:, 1]+preds[:,3]/2)
+    
     dists = np.sqrt((gt_centers_x - preds_centers_x) ** 2 + (gt_centers_y - preds_centers_y) ** 2)
     threshes = []
     precisions = []
@@ -138,32 +193,56 @@ def get_thresh_precision_pair(gts,preds):
         precision = true_len / len(dists)
         threshes.append(thresh)
         precisions.append(precision)
+    print("threshold of precision", threshes)
+    print("precision",precisions)
     return threshes,precisions
 
 
 def plot_success(gts,preds,save_path):
+    '''
+    draw the success plot 
+    
+    :param gts:
+    :param preds:
+    :param save_path: '../results/CF/{data_name}_success.jpg'
+    :return:
+    '''
     threshes, successes=get_thresh_success_pair(gts, preds)
     plt.plot(threshes,successes,label=str(calAUC(successes))[:5])
     plt.title('Success Plot')
-    plt.legend()
+    #plt.legend()
+    plt.xlabel("threshold")
+    plt.ylabel("success rate")
+    print(save_path)
     plt.savefig(save_path)
-    plt.show()
+    return threshes, successes
+    #plt.show()
 
 
 def get_thresh_success_pair(gts, preds):
+    '''
+    compute success rate
+    return thresh [] ; success rate[]
+    
+    '''
     length=min(len(gts),len(preds))
     gts=gts[:length,:]
     preds=preds[:length,:]
+    
     intersect_tl_x = np.max((gts[:, 0], preds[:, 0]), axis=0)
     intersect_tl_y = np.max((gts[:, 1], preds[:, 1]), axis=0)
+    
     intersect_br_x = np.min((gts[:, 0] + gts[:, 2], preds[:, 0] + preds[:, 2]), axis=0)
     intersect_br_y = np.min((gts[:, 1] + gts[:, 3], preds[:, 1] + preds[:, 3]), axis=0)
+    
     intersect_w = intersect_br_x - intersect_tl_x
     intersect_w[intersect_w < 0] = 0
     intersect_h = intersect_br_y - intersect_tl_y
     intersect_h[intersect_h < 0] = 0
     intersect_areas = intersect_h * intersect_w
+    
     ious = intersect_areas / (gts[:, 2] * gts[:, 3] + preds[:, 2] * preds[:, 3] - intersect_areas)
+    
     threshes = []
     successes = []
     for thresh in np.linspace(0, 1, 101):
@@ -171,5 +250,7 @@ def get_thresh_success_pair(gts, preds):
         success = success_len / len(ious)
         threshes.append(thresh)
         successes.append(success)
+    #print("threshold of successes", successes)
+    print("successes",successes)
     return threshes,successes
 

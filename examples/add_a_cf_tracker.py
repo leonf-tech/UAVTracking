@@ -45,20 +45,20 @@ def add_a_tracker(results_json_path,tracker_type,dst_json_path):
             print('test')
             os.mkdir('../results/tmp/')
         plt.savefig('../results/tmp/'+data_name+'_precision.jpg')
-        plt.clf()
+        # plt.clf()
 
 
         threshes,successes_tracker=get_thresh_success_pair(gts, tracker_preds)
 
-        plt.plot(threshes,successes_tracker,label=tracker_type+' '+str(calAUC(successes_tracker))[:5])
-
-        plt.title(data_name+' Success')
-        plt.xlabel('thresh')
-        plt.ylabel('success')
-        plt.legend()
-
-        plt.savefig('../results/tmp/'+data_name+'_success.jpg')
-        plt.clf()
+        # plt.plot(threshes,successes_tracker,label=tracker_type+' '+str(calAUC(successes_tracker))[:5])
+        #
+        # plt.title(data_name+' Success')
+        # plt.xlabel('thresh')
+        # plt.ylabel('success')
+        # plt.legend()
+        #
+        # plt.savefig('../results/tmp/'+data_name+'_success.jpg')
+        # plt.clf()
 
     json_content = json.dumps(otb100_results, default=str)
     f = open(dst_json_path, 'w')

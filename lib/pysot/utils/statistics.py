@@ -82,12 +82,8 @@ def overlap_ratio(rect1, rect2):
     Args
         rect:2d array of N x [x,y,w,h]
     Return:
-        iou
+        iou 1d array [float, ..., ]
     '''
-    # if rect1.ndim==1:
-    #     rect1 = rect1[np.newaxis, :]
-    # if rect2.ndim==1:
-    #     rect2 = rect2[np.newaxis, :]
     left = np.maximum(rect1[:,0], rect2[:,0])
     right = np.minimum(rect1[:,0]+rect1[:,2], rect2[:,0]+rect2[:,2])
     top = np.maximum(rect1[:,1], rect2[:,1])
@@ -99,19 +95,48 @@ def overlap_ratio(rect1, rect2):
     iou = np.maximum(np.minimum(1, iou), 0)
     return iou
 
-@jit(nopython=True)
-def success_overlap(gt_bb, result_bb, n_frame):
+#@jit(nopython=True)
+def success_overlap(gt_bb, result_bb, n_frame,tracked_loss):
+    '''
+
+    :param gt_bb: <- eval_success() gt_traj
+    :param result_bb: <- eval_success() tracker_traj
+    :param n_frame: <- eval_success() n_frame
+    :target_lost
+    :tracked_loss
+    :return:
+
+    '''
+
     thresholds_overlap = np.arange(0, 1.05, 0.05)
     success = np.zeros(len(thresholds_overlap))
+
     iou = np.ones(len(gt_bb)) * (-1)
-    mask = np.sum(gt_bb > 0, axis=1) == 4
-    iou[mask] = overlap_ratio(gt_bb[mask], result_bb[mask])
-    for i in range(len(thresholds_overlap)):
-        success[i] = np.sum(iou > thresholds_overlap[i]) / float(n_frame)
+
+    # print("gt_bb.ndim")
+    # print(gt_bb.ndim)
+    # if(gt_bb.ndim!=2):
+    #     print("gt_bb,result_bb,n_frame,target_lost")
+    #     print(gt_bb,result_bb,n_frame,target_lost) #[] [] 139
+    #     raise Exception("gt_bb.ndim!=2")
+
+    if(gt_bb!=[]):
+        mask = np.sum(gt_bb > 0, axis=1) == 4 # TODO 修改success的计算
+        # print("mask.shape")
+        # print(mask.shape) #(900,) (534,)
+        #print(mask)[ True  True  True ...  True  True  True]
+        iou[mask] = overlap_ratio(gt_bb[mask], result_bb[mask])
+
+        # print("iou")
+        # print(iou) [ 0.96014068 0.95012898 ... ]
+        for i in range(len(thresholds_overlap)):
+            success[i] = ( np.sum(iou > thresholds_overlap[i])+tracked_loss ) / float(n_frame)
+    else:
+        pass
     return success
 
 @jit(nopython=True)
-def success_error(gt_center, result_center, thresholds, n_frame):
+def success_error(gt_center, result_center, thresholds, n_frame,tracked_lost):
     # n_frame = len(gt_center)
     success = np.zeros(len(thresholds))
     dist = np.ones(len(gt_center)) * (-1)
@@ -119,7 +144,7 @@ def success_error(gt_center, result_center, thresholds, n_frame):
     dist[mask] = np.sqrt(np.sum(
         np.power(gt_center[mask] - result_center[mask], 2), axis=1))
     for i in range(len(thresholds)):
-        success[i] = np.sum(dist <= thresholds[i]) / float(n_frame)
+        success[i] = ( np.sum(dist <= thresholds[i])+tracked_lost ) / float(n_frame)
     return success
 
 @jit(nopython=True)
@@ -165,7 +190,7 @@ def calculate_expected_overlap(fragments, fweights):
     expected_overlaps = np.zeros((max_len), np.float32)
     expected_overlaps[0] = 1
 
-    # TODO Speed Up 
+    #Speed Up
     for i in range(1, max_len):
         mask = np.logical_not(np.isnan(fragments[:, i]))
         if np.any(mask):

@@ -205,7 +205,7 @@ class Staple(BaseCF):
             self.sf_num = self.ysf * np.conj(xsf)
         self.rect_position_padded = None
 
-    def update(self, current_frame, vis=False):
+    def update(self, current_frame,idx, vis=False):
         im_patch_cf = self.get_sub_window(current_frame, self._center, self.norm_bg_area, self.bg_area)
         pwp_search_area = (round(self.norm_pwp_search_area[0] / self.area_resize_factor),
                            round(self.norm_pwp_search_area[1] / self.area_resize_factor))

@@ -5,6 +5,20 @@ from .draw_utils import COLOR, LINE_STYLE
 
 def draw_success_precision(success_ret, name, videos, attr, precision_ret=None,
         norm_precision_ret=None, bold_name=None, axis=[0, 1]):
+    '''
+
+    :param success_ret:
+    :param name:
+    :param videos:
+    :param attr:
+    :param precision_ret:
+    :param norm_precision_ret:
+    :param bold_name:
+    :param axis:
+    :return:
+    将整体，各个属性的success保存到"./results/"+attr+"draw_success.jpg"
+    precision"./results/"+attr+"_draw_precision.jpg"
+    '''
     # success plot
     fig, ax = plt.subplots()
     ax.grid(b=True)
@@ -40,8 +54,9 @@ def draw_success_precision(success_ret, name, videos, attr, precision_ret=None,
     plt.xticks(np.arange(xmin, xmax+0.01, 0.1))
     plt.yticks(np.arange(ymin, ymax, 0.1))
     ax.set_aspect((xmax - xmin)/(ymax-ymin))
-
-    plt.show()
+    print("save image ./resullts/"+attr+"_draw_success.jpg")
+    plt.savefig("./results/"+attr+"draw_success.jpg")  #TODO
+    #plt.show()
 
     if precision_ret:
         # norm precision plot
@@ -79,7 +94,9 @@ def draw_success_precision(success_ret, name, videos, attr, precision_ret=None,
         plt.xticks(np.arange(xmin, xmax+0.01, 5))
         plt.yticks(np.arange(ymin, ymax, 0.1))
         ax.set_aspect((xmax - xmin)/(ymax-ymin))
-        plt.show()
+        print("save image ./resullts/"+attr+"draw_precision.jpg")
+        plt.savefig("./results/"+attr+"_draw_precision.jpg")
+        #plt.show()
 
     # norm precision plot
     if norm_precision_ret:
@@ -115,4 +132,4 @@ def draw_success_precision(success_ret, name, videos, attr, precision_ret=None,
         plt.xticks(np.arange(xmin, xmax+0.01, 0.05))
         plt.yticks(np.arange(ymin, ymax, 0.1))
         ax.set_aspect((xmax - xmin)/(ymax-ymin))
-        plt.show()
+        # plt.show()

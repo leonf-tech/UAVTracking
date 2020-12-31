@@ -150,7 +150,7 @@ class CSRDCF(BaseCF):
         self.chann_w=chann_w/np.sum(chann_w)
 
 
-    def update(self,current_frame,vis=False):
+    def update(self,current_frame,idx,vis=False):
         f=self.get_csr_features(current_frame,self._center,self.current_scale_factor,
                                 self.template_size,self.rescale_template_size,self.cell_size)
         f=f*self._window[:,:,None]

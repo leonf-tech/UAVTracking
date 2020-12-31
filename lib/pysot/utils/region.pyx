@@ -7,6 +7,7 @@
 from libc.stdlib cimport malloc, free
 from libc.stdio cimport sprintf
 from libc.string cimport strlen
+import numpy as np
 
 cimport c_region
 
@@ -145,13 +146,13 @@ cdef class Polygon:
 def vot_overlap(polygon1, polygon2, bounds=None):
     """ computing overlap between two polygon
     Args:
-        polygon1: polygon tuple of points
+        polygon1: polygon33 tuple of points
         polygon2: polygon tuple of points
         bounds: tuple of (left, top, right, bottom) or tuple of (width height)
     Return:
         overlap: overlap between two polygons
     """
-    if len(polygon1) == 1 or len(polygon2) == 1:
+    if np.all(polygon1)==np.nan:
         return float("nan")
 
     if len(polygon1) == 4:

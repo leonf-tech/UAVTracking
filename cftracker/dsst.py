@@ -66,7 +66,14 @@ class DSST(BaseCF):
             self.scale_estimator=LPScaleEstimator(self.target_sz,config=self.scale_config)
             self.scale_estimator.init(first_frame,self._center,self.base_target_size,self.current_scale_factor)
 
-    def update(self,current_frame,vis=False):
+    def update(self,current_frame,idx,vis=False):
+        '''
+
+        :param current_frame:
+        :param idx: index of the frame
+        :param vis:
+        :return:
+        '''
         xt=self.get_translation_sample(current_frame,self._center,self.crop_size,self.current_scale_factor,self._window)
         xtf=fft2(xt)
         response=np.real(ifft2(np.sum(self.hf_num*xtf,axis=2)/(self.hf_den+self.lambda_)))

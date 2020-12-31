@@ -220,7 +220,7 @@ class MCCTHStaple(BaseCF):
             self.experts[i].smooth_scores.append(1)
             self.experts[i].centers.append([self._center[0], self._center[1]])
 
-    def update(self, current_frame, vis=False):
+    def update(self, current_frame, idx,vis=False):
         self.frame_idx += 1
         im_patch_cf = self.get_sub_window(current_frame, self._center, self.norm_bg_area, self.bg_area)
         pwp_search_area = (round(self.norm_pwp_search_area[0] / self.area_resize_factor),

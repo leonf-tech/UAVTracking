@@ -23,6 +23,9 @@ class MOSSE(BaseCF):
             assert first_frame.shape[2]==3
             first_frame=cv2.cvtColor(first_frame,cv2.COLOR_BGR2GRAY)
         first_frame=first_frame.astype(np.float32)/255
+        #
+        # print("bbox")
+        # print(bbox)
         x,y,w,h=tuple(bbox)
         self._center=(x+w/2,y+h/2)
         self.w,self.h=w,h
@@ -40,7 +43,14 @@ class MOSSE(BaseCF):
             self._Bi+=Fi*np.conj(Fi)
 
 
-    def update(self,current_frame,vis=False):
+    def update(self,current_frame,idx,vis=False):
+        '''
+
+        :param current_frame:
+        :param idx:
+        :param vis:
+        :return:
+        '''
         if len(current_frame.shape)!=2:
             assert current_frame.shape[2]==3
             current_frame=cv2.cvtColor(current_frame,cv2.COLOR_BGR2GRAY)

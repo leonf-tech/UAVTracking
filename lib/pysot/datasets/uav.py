@@ -32,8 +32,15 @@ class UAVDataset(Dataset):
         load_img: wether to load all imgs
     """
     def __init__(self, name, dataset_root, load_img=False):
+        '''
+
+        :param name: UAV123
+        :param dataset_root:  pyCFTrackers/dataset/UAV123
+        :param load_img:
+        '''
         super(UAVDataset, self).__init__(name, dataset_root)
-        with open(os.path.join(dataset_root, name+'.json'), 'r') as f:
+
+        with open(os.path.join(dataset_root, "new_"+name+'.json'), 'r') as f:
             meta_data = json.load(f)
 
         # load videos

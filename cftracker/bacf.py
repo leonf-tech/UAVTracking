@@ -107,7 +107,14 @@ class BACF(BaseCF):
 
 
 
-    def update(self,current_frame,vis=False):
+    def update(self,current_frame,idx,vis=False):
+        '''
+
+        :param current_frame:
+        :param idx:
+        :param vis:
+        :return:
+        '''
         x=None
         for scale_ind in range(self.number_of_scales):
             current_scale=self.current_scale_factor*self.scale_factors[scale_ind]
